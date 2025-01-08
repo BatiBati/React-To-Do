@@ -11,6 +11,8 @@ function App() {
 
   const [filterState, setFilterState] = useState("ALL");
 
+  const [log, setLog] = useState();
+
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };
@@ -28,8 +30,10 @@ function App() {
     }
   };
   const handleDeleteTask = (id) => {
-    const newTodos = todos.filter((el) => el.id !== id);
-    setTodos(newTodos);
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      const newTodos = todos.filter((el) => el.id !== id);
+      setTodos(newTodos);
+    }
   };
 
   const handleTaskCheckBox = (id) => {
@@ -46,8 +50,19 @@ function App() {
     setTodos(tasks);
   };
 
+  const completedTasks = () => {
+    return todos.filter((item) => item.status === "COMPLETED").length;
+  };
+
   const handleFilterStateChange = (state) => {
     setFilterState(state);
+  };
+
+  const deleteCompletedTasks = () => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      const deletedTasks = todos.filter((item) => item.status !== "COMPLETED");
+      setTodos(deletedTasks);
+    }
   };
 
   return (
@@ -67,6 +82,28 @@ function App() {
               Add
             </button>
           </div>
+          <div className="filterContainer">
+            <button
+              className="allButton"
+              onClick={() => handleFilterStateChange("ALL")}
+            >
+              All
+            </button>
+            <button
+              className="activeButton"
+              onClick={() => handleFilterStateChange("ACTIVE")}
+            >
+              Active
+            </button>
+            <button
+              className="completedButton"
+              onClick={() => handleFilterStateChange("COMPLETED")}
+            >
+              Completed
+            </button>
+            <button className="logButton">Logs</button>
+          </div>
+
           {todos
             .filter((todo) => {
               if (filterState === "ACTIVE") {
@@ -95,30 +132,26 @@ function App() {
                 </div>
               );
             })}
-          <div className="filterContainer">
-            <button
-              className="allButton"
-              onClick={() => handleFilterStateChange("ALL")}
-            >
-              All
-            </button>
-            <button
-              className="activeButton"
-              onClick={() => handleFilterStateChange("ACTIVE")}
-            >
-              Active
-            </button>
-            <button
-              className="completedButton"
-              onClick={() => handleFilterStateChange("COMPLETED")}
-            >
-              Completed
-            </button>
-          </div>
         </div>
-        <p className="bot">No tasks yet. Add one above!</p>
+
+        {todos.length > 0 ? (
+          <div className="bot">
+            <div>
+              {completedTasks() + " of " + (todos.length + " task completed")}
+            </div>
+            <div
+              className="clearCompleted"
+              onClick={() => deleteCompletedTasks()}
+            >
+              Clear Completed
+            </div>
+          </div>
+        ) : (
+          <div className="botLengthNone">
+            <p> No tasks yet. Add one above!</p>
+          </div>
+        )}
       </div>
-      <div className="footerContainer"></div>
     </>
   );
 }
