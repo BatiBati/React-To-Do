@@ -1,8 +1,11 @@
 import { useState } from "react";
 import "./App.css";
 import { v4 as uuidv4 } from "uuid";
+import moment from "moment";
 
 function App() {
+  const time = moment().format("LLLL");
+
   const [todos, setTodos] = useState([]);
 
   const [inputValue, setInputValue] = useState("");
@@ -11,7 +14,7 @@ function App() {
 
   const [filterState, setFilterState] = useState("ALL");
 
-  const [log, setLog] = useState();
+  const [log, setLog] = useState([]);
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
@@ -22,20 +25,32 @@ function App() {
       setError(true);
     } else {
       setError(false);
-      setTodos([
-        ...todos,
-        { description: inputValue, status: "ACTIVE", id: uuidv4() },
+      const newTask = {
+        description: inputValue,
+        status: "ACTIVE",
+        id: uuidv4(),
+      };
+      setTodos([...todos, newTask]);
+      setLog([
+        ...log,
+        {
+          description: inputValue,
+          status: "ACTIVE",
+          id: newTask.id,
+          logs: [{ status: "ACTIVE", time: time }],
+        },
       ]);
       setInputValue("");
     }
   };
+  console.log(log);
+
   const handleDeleteTask = (id) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
       const newTodos = todos.filter((el) => el.id !== id);
       setTodos(newTodos);
     }
   };
-
   const handleTaskCheckBox = (id) => {
     const tasks = todos.map((todo) => {
       if (todo.id === id) {
@@ -48,8 +63,25 @@ function App() {
       }
     });
     setTodos(tasks);
+    const logs = log.map((oneLog) => {
+      if (oneLog.id === id) {
+        return {
+          ...oneLog,
+          status: oneLog.status === "ACTIVE" ? "COMPLETED" : "ACTIVE",
+          logs: [
+            ...oneLog.logs,
+            {
+              status: oneLog.status === "ACTIVE" ? "COMPLETED" : "ACTIVE",
+              time: time,
+            },
+          ],
+        };
+      } else {
+        return oneLog;
+      }
+    });
+    setLog(logs);
   };
-
   const completedTasks = () => {
     return todos.filter((item) => item.status === "COMPLETED").length;
   };
@@ -101,8 +133,31 @@ function App() {
             >
               Completed
             </button>
-            <button className="logButton">Logs</button>
+            <button
+              className="logButton"
+              onClick={() => handleFilterStateChange("LOG")}
+            >
+              Logs
+            </button>
           </div>
+          {filterState === "LOG" && (
+            <div>
+              {log.map((el) => {
+                return (
+                  <div>
+                    <p>{el.description}</p>
+                    <div>
+                      {el.logs.map((el, index) => (
+                        <p key={index}>
+                          {el.status} {el.time}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {todos
             .filter((todo) => {
@@ -110,8 +165,10 @@ function App() {
                 return todo.status === "ACTIVE";
               } else if (filterState === "COMPLETED") {
                 return todo.status === "COMPLETED";
-              } else {
+              } else if (filterState === "ALL") {
                 return true;
+              } else {
+                return null;
               }
             })
             .map((todo, i) => {
