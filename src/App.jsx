@@ -30,7 +30,7 @@ function App() {
         status: "ACTIVE",
         id: uuidv4(),
       };
-      setTodos([...todos, newTask]);
+      
       setLog([
         ...log,
         {
@@ -40,10 +40,13 @@ function App() {
           logs: [{ status: "ACTIVE", time: time }],
         },
       ]);
+
       setInputValue("");
+      setTodos([...todos, newTask]);
+
     }
   };
-  console.log(log);
+
 
   const handleDeleteTask = (id) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
@@ -56,7 +59,7 @@ function App() {
       if (todo.id === id) {
         return {
           ...todo,
-          status: todo.status === "ACTIVE" ? "COMPLETED" : "ACTIVE",
+          status: todo.status === "ACTIVE" ? "COMPLETED" : "ACTIVE"
         };
       } else {
         return todo;
@@ -74,14 +77,24 @@ function App() {
               status: oneLog.status === "ACTIVE" ? "COMPLETED" : "ACTIVE",
               time: time,
             },
+            {
+              deleteCompletedTasks(deletedTasks);
+            }
           ],
         };
+       
+        
       } else {
         return oneLog;
       }
+      
     });
     setLog(logs);
   };
+
+console.log(log);
+
+
   const completedTasks = () => {
     return todos.filter((item) => item.status === "COMPLETED").length;
   };
