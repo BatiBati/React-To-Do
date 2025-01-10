@@ -30,7 +30,7 @@ function App() {
         status: "ACTIVE",
         id: uuidv4(),
       };
-      
+
       setLog([
         ...log,
         {
@@ -43,29 +43,47 @@ function App() {
 
       setInputValue("");
       setTodos([...todos, newTask]);
-
     }
   };
-
 
   const handleDeleteTask = (id) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
       const newTodos = todos.filter((el) => el.id !== id);
       setTodos(newTodos);
     }
+
+    const logs = log.map((oneLog) => {
+      if (oneLog.id === id) {
+        return {
+          ...oneLog,
+          status: "DELETED",
+          logs: [
+            ...oneLog.logs,
+            {
+              status: "DELETED",
+              time: time,
+            },
+          ],
+        };
+      } else {
+        return oneLog;
+      }
+    });
+    setLog(logs);
   };
   const handleTaskCheckBox = (id) => {
     const tasks = todos.map((todo) => {
       if (todo.id === id) {
         return {
           ...todo,
-          status: todo.status === "ACTIVE" ? "COMPLETED" : "ACTIVE"
+          status: todo.status === "ACTIVE" ? "COMPLETED" : "ACTIVE",
         };
       } else {
         return todo;
       }
     });
     setTodos(tasks);
+
     const logs = log.map((oneLog) => {
       if (oneLog.id === id) {
         return {
@@ -77,23 +95,16 @@ function App() {
               status: oneLog.status === "ACTIVE" ? "COMPLETED" : "ACTIVE",
               time: time,
             },
-            {
-              deleteCompletedTasks(deletedTasks);
-            }
           ],
         };
-       
-        
       } else {
         return oneLog;
       }
-      
     });
     setLog(logs);
   };
 
-console.log(log);
-
+  console.log(log);
 
   const completedTasks = () => {
     return todos.filter((item) => item.status === "COMPLETED").length;
@@ -108,6 +119,22 @@ console.log(log);
       const deletedTasks = todos.filter((item) => item.status !== "COMPLETED");
       setTodos(deletedTasks);
     }
+  };
+
+  const restoreDeleted = (id) => {
+    const logs = log.map((oneLog) => {
+      if (oneLog.id === id) {
+        setTodos(log);
+        return {
+          ...oneLog,
+          status: "ACTIVE",
+          logs: [...oneLog.logs, { status: "ACTIVE", time: time }],
+        };
+      } else {
+        return oneLog;
+      }
+    });
+    setLog(logs);
   };
 
   return (
@@ -155,17 +182,21 @@ console.log(log);
           </div>
           {filterState === "LOG" && (
             <div>
-              {log.map((el) => {
+              {log.map((el, index) => {
                 return (
-                  <div>
+                  <div key={index}>
                     <p>{el.description}</p>
                     <div>
                       {el.logs.map((el, index) => (
                         <p key={index}>
-                          {el.status} {el.time}
+                          {el.status}
+                          {el.time}
                         </p>
                       ))}
                     </div>
+                    <button onClick={() => restoreDeleted(el.id)}>
+                      Restore
+                    </button>
                   </div>
                 );
               })}
@@ -193,12 +224,12 @@ console.log(log);
                     onChange={() => handleTaskCheckBox(todo.id)}
                   />
                   {todo.description}
-                  <div
+                  <button
                     className="delete"
                     onClick={() => handleDeleteTask(todo.id)}
                   >
                     Delete
-                  </div>
+                  </button>
                 </div>
               );
             })}
@@ -209,12 +240,12 @@ console.log(log);
             <div>
               {completedTasks() + " of " + (todos.length + " task completed")}
             </div>
-            <div
+            <button
               className="clearCompleted"
               onClick={() => deleteCompletedTasks()}
             >
               Clear Completed
-            </div>
+            </button>
           </div>
         ) : (
           <div className="botLengthNone">
